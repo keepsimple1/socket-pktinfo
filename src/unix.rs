@@ -223,4 +223,11 @@ impl PktInfoUdpSocket {
             Some(info) => Ok((bytes_recv as _, info)),
         }
     }
+
+    /// Creates a new independently owned std UdpSocket from this PktInfoUdpSocket.
+    ///
+    /// This is useful to mix and match functionality from this crate with stdlib or other crates.
+    pub fn try_clone_std(&self) -> io::Result<std::net::UdpSocket> {
+        Ok(self.socket.try_clone()?.into())
+    }
 }
