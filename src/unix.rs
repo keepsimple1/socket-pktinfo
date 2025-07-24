@@ -133,12 +133,19 @@ impl PktInfoUdpSocket {
     }
 
     pub fn recv(&self, buf: &mut [u8]) -> io::Result<(usize, PktInfo)> {
+        let is_ipv6 = self.domain == Domain::IPV6;
+        let space = if is_ipv6 {
+            unsafe { libc::CMSG_SPACE(mem::size_of::<libc::in6_pktinfo>() as libc::c_uint) as usize }
+        } else {
+            unsafe { libc::CMSG_SPACE(mem::size_of::<libc::in_pktinfo>() as libc::c_uint) as usize}
+        }; 
+    
         let mut addr_src: MaybeUninit<libc::sockaddr_storage> = MaybeUninit::uninit();
         let mut msg_iov = IoSliceMut::new(buf);
         let mut cmsg = {
-            let space = unsafe {
-                libc::CMSG_SPACE(mem::size_of::<libc::in_pktinfo>() as libc::c_uint) as usize
-            };
+            // let space = unsafe {
+            //     libc::CMSG_SPACE(mem::size_of::<libc::in_pktinfo>() as libc::c_uint) as usize
+            // };
             Vec::<u8>::with_capacity(space)
         };
 
